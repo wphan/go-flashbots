@@ -11,8 +11,8 @@ import (
 
 func main() {
 	// sample private key
-	pkey, pubAddr, _ := account.LoadPrivateKey("0x9c03d71f2cab3ac367e407e25ed213c56b50957a1f75d9f6b4f9be00066d6963")
-	r, err := flashbots.NewRelayClient(pkey, "https://relay.flashbots.net")
+	pkey, pubAddr, _ := account.LoadPrivateKeyString("0x9c03d71f2cab3ac367e407e25ed213c56b50957a1f75d9f6b4f9be00066d6963")
+	r, err := flashbots.NewRelayClient(pkey, "flashbots", "https://relay.flashbots.net", "https://relay.flashbots.net")
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +38,7 @@ func main() {
 	})
 
 	// create the bundle
-	b, err := NewBundle([]*types.Transaction{tx, tx2}, 12639480, 0, nil, nil, nil)
+	b, err := flashbots.NewBundle([]*types.Transaction{tx, tx2}, 12639480, 0, nil, nil, nil)
 	if err != nil {
 		panic(err)
 	}

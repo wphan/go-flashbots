@@ -11,3 +11,5 @@ go-flashbots is slightly more opinionated client for the flashbots rpc
 * takes in `[]*types.Transaction` to create bundle
 * returns a `time.Duration` to track response times of relays (useful for identifying when relay may be congested)
 * allow bulk sending bundles (send to multiple relays) via `BatchRelayClient` and `BatchSendBundle`
+
+# Example

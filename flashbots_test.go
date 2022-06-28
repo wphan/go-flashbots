@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/go-flashbots/account"
+	"github.com/wphan/go-flashbots/account"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -170,7 +170,7 @@ func Test_preparePayload(t *testing.T) {
 		return
 	}
 	pkey, _, _ := account.LoadPrivateKeyString("0x9c03d71f2cab3ac367e407e25ed213c56b50957a1f75d9f6b4f9be00066d6963")
-	r, _ := NewRelayClient(pkey, "", "")
+	r, _ := NewRelayClient(pkey, "", "", "")
 	payloadBytes, err := r.prepareBundlePayload(b, "eth_sendBundle")
 	if err != nil {
 		t.Errorf("failed prepareBundlePayload: %+v\n", err)
@@ -191,7 +191,7 @@ func TestRelayClient_SendBundle(t *testing.T) {
 	}
 
 	pkey, pubAddr, _ := account.LoadPrivateKeyString("0x9c03d71f2cab3ac367e407e25ed213c56b50957a1f75d9f6b4f9be00066d6963")
-	r, err := NewRelayClient(pkey, "https://relay.flashbots.net", "https://relay.flashbots.net")
+	r, err := NewRelayClient(pkey, "test-client", "https://relay.flashbots.net", "https://relay.flashbots.net")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -214,11 +214,11 @@ func TestRelayClient_SendBundle(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	resp, duration, err := r.SendBundle(b)
-	fmt.Printf("took: %+v\n", duration)
-	fmt.Printf("response: %+v\n", resp)
-	if err != nil {
-		t.Fatalf("%+v", err)
+	resp := r.SendBundle(b)
+	fmt.Printf("took: %+v\n", resp.Duration)
+	fmt.Printf("response: %+v\n", resp.ResponseBytes)
+	if resp.Error != nil {
+		t.Fatalf("%+v", resp.Error)
 	}
 }
 
@@ -228,7 +228,7 @@ func TestRelayClient_SimulateBundle(t *testing.T) {
 	}
 
 	pkey, pubAddr, _ := account.LoadPrivateKeyString("0x9c03d71f2cab3ac367e407e25ed213c56b50957a1f75d9f6b4f9be00066d6963")
-	r, err := NewRelayClient(pkey, "https://relay.flashbots.net", "https://relay.flashbots.net")
+	r, err := NewRelayClient(pkey, "test-client", "https://relay.flashbots.net", "https://relay.flashbots.net")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -356,7 +356,7 @@ func TestRelayClient_GetBundleStats(t *testing.T) {
 	}
 
 	pkey, pubAddr, _ := account.LoadPrivateKeyString("")
-	r, err := NewRelayClient(pkey, "https://relay.flashbots.net", "https://relay.flashbots.net")
+	r, err := NewRelayClient(pkey, "test-client", "https://relay.flashbots.net", "https://relay.flashbots.net")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -18,15 +18,15 @@ import (
 )
 
 type Bundle struct {
-	transactions     []*types.Transaction `json:"-"`
-	txsByteString    []string             `json:"txs"`                        // TxsByteString is the same as Transactions, but in raw hex formatted strings
-	blockNumber      string               `json:"blockNumber"`                // BlockNumber is the earliest block number where this bundle will be valid (stored as hex string)
-	stateBlockNumber string               `json:"stateBlockNumber,omitempty"` // StateBlockNumber must be provided if simulating bundle (stored as hex string)
-	minTimestamp     *int                 `json:"minTimestamp,omitempty"`     // MinTimestamp in which the bundle will be valid, nil to allow any time
-	maxTimestamp     *int                 `json:"maxTimestamp,omitempty"`     // MaxTimestamp in which the bundle will be valid, nil to allow any time
+	Transactions     []*types.Transaction `json:"-"`
+	TxsByteString    []string             `json:"txs"`                        // TxsByteString is the same as Transactions, but in raw hex formatted strings
+	BlockNumber      string               `json:"blockNumber"`                // BlockNumber is the earliest block number where this bundle will be valid (stored as hex string)
+	StateBlockNumber string               `json:"stateBlockNumber,omitempty"` // StateBlockNumber must be provided if simulating bundle (stored as hex string)
+	MinTimestamp     *int                 `json:"minTimestamp,omitempty"`     // MinTimestamp in which the bundle will be valid, nil to allow any time
+	MaxTimestamp     *int                 `json:"maxTimestamp,omitempty"`     // MaxTimestamp in which the bundle will be valid, nil to allow any time
 
-	// revertingTxHashes contain list of transaction hashes that are "allowed to revert" - bundle will still land on chain if these transactions revert
-	revertingTxHashes []string `json:"revertingTxHashes,omitempty"`
+	// RevertingTxHashes contain list of transaction hashes that are "allowed to revert" - bundle will still land on chain if these transactions revert
+	RevertingTxHashes []string `json:"revertingTxHashes,omitempty"`
 }
 
 // NewBundle creates a new bundle.
@@ -38,29 +38,29 @@ type Bundle struct {
 func NewBundle(transactions []*types.Transaction, blockNumber, stateBlockNumber uint64,
 	minTimestamp *int, maxTimestamp *int, revertingTxHashes []common.Hash) (b Bundle, retErr error) {
 
-	b.transactions = transactions
+	b.Transactions = transactions
 
-	b.txsByteString = make([]string, len(b.transactions))
-	for i, tx := range b.transactions {
+	b.TxsByteString = make([]string, len(b.Transactions))
+	for i, tx := range b.Transactions {
 		txBytes, err := tx.MarshalBinary()
 		if err != nil {
 			retErr = fmt.Errorf("failed tx.MarshalBinary() for tx: %s\nerrors: %w", tx.Hash().Hex(), err)
 			return
 		}
-		b.txsByteString[i] = "0x" + common.Bytes2Hex(txBytes)
+		b.TxsByteString[i] = "0x" + common.Bytes2Hex(txBytes)
 	}
 
-	b.blockNumber = "0x" + strconv.FormatUint(blockNumber, 16)
+	b.BlockNumber = "0x" + strconv.FormatUint(blockNumber, 16)
 	if stateBlockNumber == 0 {
-		b.stateBlockNumber = "latest"
+		b.StateBlockNumber = "latest"
 	} else {
-		b.stateBlockNumber = "0x" + strconv.FormatUint(stateBlockNumber, 16)
+		b.StateBlockNumber = "0x" + strconv.FormatUint(stateBlockNumber, 16)
 	}
-	b.minTimestamp = minTimestamp
-	b.maxTimestamp = maxTimestamp
-	b.revertingTxHashes = make([]string, len(revertingTxHashes))
+	b.MinTimestamp = minTimestamp
+	b.MaxTimestamp = maxTimestamp
+	b.RevertingTxHashes = make([]string, len(revertingTxHashes))
 	for i, tx := range revertingTxHashes {
-		b.revertingTxHashes[i] = tx.Hex()
+		b.RevertingTxHashes[i] = tx.Hex()
 	}
 
 	return
@@ -68,16 +68,8 @@ func NewBundle(transactions []*types.Transaction, blockNumber, stateBlockNumber 
 
 // AddTransaction to existing bundle
 func (b *Bundle) AddTransaction(tx *types.Transaction) {
-	b.transactions = append(b.transactions, tx)
+	b.Transactions = append(b.Transactions, tx)
 }
-
-func (b Bundle) Transactions() []*types.Transaction { return b.transactions }
-func (b Bundle) TxsByteString() []string            { return b.txsByteString }
-func (b Bundle) BlockNumber() string                { return b.blockNumber }
-func (b Bundle) StateBlockNumber() string           { return b.stateBlockNumber }
-func (b Bundle) MinTimestamp() *int                 { return b.minTimestamp }
-func (b Bundle) MaxTimestamp() *int                 { return b.maxTimestamp }
-func (b Bundle) RevertingTxHashes() []string        { return b.revertingTxHashes }
 
 type rpcPaylod struct {
 	JsonRPC string      `json:"jsonrpc"`
@@ -205,11 +197,10 @@ func unmarshalBodyBytesToGenericMap(bytes []byte) (response map[string]interface
 	return
 }
 
-
 type SendBundleResponse struct {
 	ResponseBytes []byte
-	Duration time.Duration
-	Error error
+	Duration      time.Duration
+	Error         error
 }
 
 // SendBundle sends a Bundle on RelayClient.
@@ -225,8 +216,8 @@ func (r *RelayClient) SendBundle(b Bundle) (resp SendBundleResponse) {
 
 	return SendBundleResponse{
 		ResponseBytes: responseBytes,
-		Duration: duration,
-		Error: err,
+		Duration:      duration,
+		Error:         err,
 	}
 }
 
@@ -235,8 +226,8 @@ func (r *RelayClient) SimulateBundle(b Bundle) (responseBytes []byte, duration t
 		retErr = errors.New("no simulation endpoint for relay " + r.name)
 		return
 	}
-	if b.stateBlockNumber == "" || b.stateBlockNumber == "0x0" {
-		b.stateBlockNumber = "latest"
+	if b.StateBlockNumber == "" || b.StateBlockNumber == "0x0" {
+		b.StateBlockNumber = "latest"
 	}
 	payload, err := r.prepareBundlePayload(b, "eth_callBundle")
 	if err != nil {
